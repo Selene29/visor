@@ -1,0 +1,320 @@
+{
+  "summary": {
+    "totalFiles": 20,
+    "categories": [
+      "Async/Await",
+      "Basic Methods",
+      "Other",
+      "Conditionals",
+      "Exception Handling",
+      "Loops",
+      "Properties",
+      "Switch Statements"
+    ],
+    "constructs": [
+      "try_statement",
+      "catch_clause",
+      "return_statement",
+      "async_method",
+      "await_expression",
+      "method_declaration",
+      "if_statement",
+      "accessor_declaration",
+      "for_statement",
+      "foreach_statement",
+      "else_clause",
+      "finally_clause",
+      "switch_statement",
+      "relational_pattern",
+      "switch_section",
+      "break_statement",
+      "continue_statement",
+      "while_statement"
+    ]
+  },
+  "details": [
+    {
+      "fileName": "async/async_await.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/async/async_await.cs",
+      "source": "// Test: Async method with await\npublic class AsyncProcessor\n{\n    public async Task<string> FetchDataAsync(string url)\n    {\n        try\n        {\n            using (var client = new HttpClient())\n            {\n                var response = await client.GetStringAsync(url);\n                return response;\n            }\n        }\n        catch (HttpRequestException ex)\n        {\n            Console.WriteLine($\"HTTP Error: {ex.Message}\");\n            return null;\n        }\n    }\n}",
+      "category": "Async/Await",
+      "constructs": [
+        "try_statement",
+        "catch_clause",
+        "return_statement",
+        "async_method",
+        "await_expression"
+      ],
+      "complexity": 2,
+      "lineCount": 20
+    },
+    {
+      "fileName": "basic/multiple_returns.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/basic/multiple_returns.cs",
+      "source": "// Test: Method with multiple return statements\npublic class Calculator\n{\n    public int Max(int a, int b)\n    {\n        if (a > b)\n            return a;\n        return b;\n    }\n}",
+      "category": "Basic Methods",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "return_statement"
+      ],
+      "complexity": 2,
+      "lineCount": 10
+    },
+    {
+      "fileName": "basic/simple_method.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/basic/simple_method.cs",
+      "source": "// Test: Simple method with basic return\npublic class Calculator\n{\n    public int Add(int a, int b)\n    {\n        return a + b;\n    }\n}",
+      "category": "Basic Methods",
+      "constructs": [
+        "method_declaration",
+        "return_statement"
+      ],
+      "complexity": 1,
+      "lineCount": 8
+    },
+    {
+      "fileName": "common/constructor_logic.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/common/constructor_logic.cs",
+      "source": "// Test: Constructor and property initialization\npublic class Customer\n{\n    public string Name { get; set; }\n    public int Age { get; set; }\n    public bool IsActive { get; set; }\n    \n    public Customer(string name, int age)\n    {\n        if (string.IsNullOrEmpty(name))\n        {\n            throw new ArgumentException(\"Name cannot be empty\");\n        }\n        \n        if (age < 0)\n        {\n            throw new ArgumentException(\"Age cannot be negative\");\n        }\n        \n        Name = name;\n        Age = age;\n        IsActive = true;\n    }\n    \n    public void DeactivateIfOld()\n    {\n        if (Age > 65)\n        {\n            IsActive = false;\n        }\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "accessor_declaration",
+        "accessor_declaration"
+      ],
+      "complexity": 4,
+      "lineCount": 32
+    },
+    {
+      "fileName": "common/email_validation.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/common/email_validation.cs",
+      "source": "// Test: Email validation with complex logic\npublic class Validator\n{\n    public bool IsValidEmail(string email)\n    {\n        if (string.IsNullOrEmpty(email))\n        {\n            return false;\n        }\n\n        if (!email.Contains(\"@\"))\n        {\n            return false;\n        }\n\n        string[] parts = email.Split('@');\n        if (parts.Length != 2)\n        {\n            return false;\n        }\n\n        return !string.IsNullOrEmpty(parts[0]) && !string.IsNullOrEmpty(parts[1]);\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 24
+    },
+    {
+      "fileName": "common/generic_methods.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/common/generic_methods.cs",
+      "source": "// Test: Generic methods and type constraints\npublic class GenericProcessor<T> where T : IComparable<T>\n{\n    public T FindMax(List<T> items)\n    {\n        if (items == null || items.Count == 0)\n        {\n            throw new ArgumentException(\"List cannot be null or empty\");\n        }\n        \n        T max = items[0];\n        \n        for (int i = 1; i < items.Count; i++)\n        {\n            if (items[i].CompareTo(max) > 0)\n            {\n                max = items[i];\n            }\n        }\n        \n        return max;\n    }\n    \n    public List<T> FilterAndSort(List<T> items, Func<T, bool> predicate)\n    {\n        var filtered = new List<T>();\n        \n        foreach (var item in items)\n        {\n            if (predicate(item))\n            {\n                filtered.Add(item);\n            }\n        }\n        \n        filtered.Sort();\n        return filtered;\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "for_statement",
+        "foreach_statement",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 39
+    },
+    {
+      "fileName": "common/linq_operations.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/common/linq_operations.cs",
+      "source": "// Test: LINQ and method chaining\nusing System.Linq;\n\npublic class DataProcessor\n{\n    public List<int> ProcessNumbers(List<int> numbers)\n    {\n        return numbers\n            .Where(n => n > 0)\n            .Where(n => n < 100)\n            .Select(n => n * 2)\n            .OrderBy(n => n)\n            .ToList();\n    }\n\n    public string ProcessStrings(List<string> strings)\n    {\n        var result = strings\n            .Where(s => !string.IsNullOrEmpty(s))\n            .Select(s => s.Trim().ToUpper())\n            .FirstOrDefault();\n            \n        return result ?? \"No valid string found\";\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "return_statement"
+      ],
+      "complexity": 1,
+      "lineCount": 25
+    },
+    {
+      "fileName": "conditionals/nested_if.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/conditionals/nested_if.cs",
+      "source": "// Test: Nested if statements\npublic class Logic\n{\n    public string Categorize(int number)\n    {\n        if (number > 0)\n        {\n            if (number > 100)\n            {\n                return \"Large Positive\";\n            }\n            else\n            {\n                return \"Small Positive\";\n            }\n        }\n        else if (number < 0)\n        {\n            return \"Negative\";\n        }\n        else\n        {\n            return \"Zero\";\n        }\n    }\n}",
+      "category": "Conditionals",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "else_clause",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 26
+    },
+    {
+      "fileName": "conditionals/simple_if_else.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/conditionals/simple_if_else.cs",
+      "source": "// Test: Simple if-else statement\npublic class Logic\n{\n    public bool IsPositive(int number)\n    {\n        if (number > 0)\n        {\n            return true;\n        }\n        else\n        {\n            return false;\n        }\n    }\n}",
+      "category": "Conditionals",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "else_clause",
+        "return_statement"
+      ],
+      "complexity": 2,
+      "lineCount": 15
+    },
+    {
+      "fileName": "exceptions/basic_try_catch.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/exceptions/basic_try_catch.cs",
+      "source": "// Test: Basic try-catch block\npublic class ExceptionHandler\n{\n    public int SafeDivide(int a, int b)\n    {\n        try\n        {\n            return a / b;\n        }\n        catch (DivideByZeroException ex)\n        {\n            Console.WriteLine($\"Error: {ex.Message}\");\n            return 0;\n        }\n    }\n}",
+      "category": "Exception Handling",
+      "constructs": [
+        "method_declaration",
+        "try_statement",
+        "catch_clause",
+        "return_statement"
+      ],
+      "complexity": 2,
+      "lineCount": 16
+    },
+    {
+      "fileName": "exceptions/try_catch_finally.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/exceptions/try_catch_finally.cs",
+      "source": "// Test: Try-catch-finally block with actual content\npublic class ExceptionHandler\n{\n    public int ComplexCalculation(int[] numbers)\n    {\n        int result = 0;\n\n        try\n        {\n            result = numbers.Sum() / numbers.Length;\n        }\n        catch (DivideByZeroException ex)\n        {\n            Console.WriteLine($\"Division error: {ex.Message}\");\n            result = 0;\n        }\n        catch (Exception ex)\n        {\n            Console.WriteLine($\"General error: {ex.Message}\");\n            result = -1;\n        }\n        finally\n        {\n            Console.WriteLine(\"Calculation completed\");\n            Console.WriteLine($\"Final result: {result}\");\n        }\n\n        return result;\n    }\n}",
+      "category": "Exception Handling",
+      "constructs": [
+        "method_declaration",
+        "try_statement",
+        "catch_clause",
+        "finally_clause",
+        "return_statement"
+      ],
+      "complexity": 3,
+      "lineCount": 30
+    },
+    {
+      "fileName": "issues/finally_block_content.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/issues/finally_block_content.cs",
+      "source": "// Test: Finally block with actual content issue from comments\npublic class ExceptionHandler\n{\n    public int ComplexCalculation(int[] numbers)\n    {\n        int result = 0;\n        \n        foreach (int number in numbers)\n        {\n            if (number > 0)\n            {\n                result += number % 2 == 0 ? number * 2 : number;\n            }\n            else if (number < 0)\n            {\n                result -= Math.Abs(number);\n            }\n        }\n\n        try\n        {\n            result = result / numbers.Length;\n        }\n        catch (DivideByZeroException ex)\n        {\n            Console.WriteLine($\"Error: {ex.Message}\");\n            result = 0;\n        }\n        finally\n        {\n            Console.WriteLine(\"Calculation completed\");\n        }\n\n        return result;\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "else_clause",
+        "foreach_statement",
+        "try_statement",
+        "catch_clause",
+        "finally_clause",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 36
+    },
+    {
+      "fileName": "issues/getgrade_relational_patterns.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/issues/getgrade_relational_patterns.cs",
+      "source": "// Test: Specific GetGrade issue from comments\npublic class GradeCalculator\n{\n    public string GetGrade(int score)\n    {\n        switch (score)\n        {\n            case >= 90:\n                return \"A\";\n            case >= 80:\n                return \"B\";\n            case >= 70:\n                return \"C\";\n            case >= 60:\n                return \"D\";\n            default:\n                return \"F\";\n        }\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "switch_statement",
+        "relational_pattern",
+        "switch_section",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 20
+    },
+    {
+      "fileName": "issues/simple_add_method.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/issues/simple_add_method.cs",
+      "source": "// Test: Simple Add method that should show Start -> return -> End\npublic class Calculator\n{\n    public int Add(int a, int b)\n    {\n        return a + b;\n    }\n}",
+      "category": "Other",
+      "constructs": [
+        "method_declaration",
+        "return_statement"
+      ],
+      "complexity": 1,
+      "lineCount": 8
+    },
+    {
+      "fileName": "loops/for_loop_break_continue.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/loops/for_loop_break_continue.cs",
+      "source": "// Test: For loop with break and continue\npublic class LoopProcessor\n{\n    public List<int> ProcessNumbers(List<int> numbers)\n    {\n        var result = new List<int>();\n        \n        for (int i = 0; i < numbers.Count; i++)\n        {\n            int current = numbers[i];\n            \n            if (current < 0)\n            {\n                continue;\n            }\n            \n            if (current > 100)\n            {\n                break;\n            }\n            \n            result.Add(current * 2);\n        }\n        \n        return result;\n    }\n}",
+      "category": "Loops",
+      "constructs": [
+        "if_statement",
+        "for_statement",
+        "return_statement",
+        "break_statement",
+        "continue_statement"
+      ],
+      "complexity": 3,
+      "lineCount": 27
+    },
+    {
+      "fileName": "loops/foreach_loop.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/loops/foreach_loop.cs",
+      "source": "// Test: Foreach loop\npublic class LoopProcessor\n{\n    public int SumPositive(int[] numbers)\n    {\n        int sum = 0;\n        \n        foreach (int number in numbers)\n        {\n            if (number > 0)\n            {\n                sum += number;\n            }\n        }\n        \n        return sum;\n    }\n}",
+      "category": "Loops",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "foreach_statement",
+        "return_statement"
+      ],
+      "complexity": 2,
+      "lineCount": 18
+    },
+    {
+      "fileName": "loops/while_loop.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/loops/while_loop.cs",
+      "source": "// Test: While loop\npublic class LoopProcessor\n{\n    public int Factorial(int n)\n    {\n        if (n <= 1)\n        {\n            return 1;\n        }\n\n        int result = 1;\n        while (n > 1)\n        {\n            result *= n;\n            n--;\n        }\n\n        return result;\n    }\n}",
+      "category": "Loops",
+      "constructs": [
+        "method_declaration",
+        "if_statement",
+        "while_statement",
+        "return_statement"
+      ],
+      "complexity": 2,
+      "lineCount": 20
+    },
+    {
+      "fileName": "properties/property_with_logic.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/properties/property_with_logic.cs",
+      "source": "// Test: Properties with getters and setters\npublic class PropertyTester\n{\n    private int _age;\n\n    public int Age\n    {\n        get\n        {\n            return _age;\n        }\n        set\n        {\n            if (value >= 0)\n            {\n                _age = value;\n            }\n            else\n            {\n                throw new ArgumentException(\"Age cannot be negative\");\n            }\n        }\n    }\n\n    public string Name { get; set; }\n}",
+      "category": "Properties",
+      "constructs": [
+        "if_statement",
+        "else_clause",
+        "return_statement",
+        "accessor_declaration",
+        "accessor_declaration"
+      ],
+      "complexity": 2,
+      "lineCount": 26
+    },
+    {
+      "fileName": "switches/switch_expressions.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/switches/switch_expressions.cs",
+      "source": "// Test: Modern switch expressions with relational patterns\npublic class GradeCalculator\n{\n    public string GetGrade(int score)\n    {\n        switch (score)\n        {\n            case >= 90:\n                return \"A\";\n            case >= 80:\n                return \"B\";\n            case >= 70:\n                return \"C\";\n            case >= 60:\n                return \"D\";\n            default:\n                return \"F\";\n        }\n    }\n}",
+      "category": "Switch Statements",
+      "constructs": [
+        "method_declaration",
+        "switch_statement",
+        "relational_pattern",
+        "switch_section",
+        "return_statement"
+      ],
+      "complexity": 5,
+      "lineCount": 20
+    },
+    {
+      "fileName": "switches/traditional_switch.cs",
+      "filePath": "/home/runner/work/visor/visor/tests/csharp/switches/traditional_switch.cs",
+      "source": "// Test: Traditional switch statement\npublic class GradeCalculator\n{\n    public string GetLetterGrade(int score)\n    {\n        switch (score / 10)\n        {\n            case 10:\n            case 9:\n                return \"A\";\n            case 8:\n                return \"B\";\n            case 7:\n                return \"C\";\n            case 6:\n                return \"D\";\n            default:\n                return \"F\";\n        }\n    }\n}",
+      "category": "Switch Statements",
+      "constructs": [
+        "method_declaration",
+        "switch_statement",
+        "switch_section",
+        "return_statement"
+      ],
+      "complexity": 6,
+      "lineCount": 21
+    }
+  ]
+}
