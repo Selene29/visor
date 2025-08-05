@@ -13,3 +13,6 @@ src/**/*.js.map
 test_*.py
 test_*.js
 simple_test.py
+
+# Test suite files that shouldn't be compiled with main extension
+tests/csharp/test_runner.ts
