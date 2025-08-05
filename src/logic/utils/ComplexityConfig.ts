@@ -178,6 +178,25 @@ export const COMPLEXITY_NODE_TYPES = {
     "goto_statement",
     "labeled_statement",
   ]),
+
+  csharp: new Set([
+    "if_statement",
+    "else_clause",
+    "for_statement",
+    "foreach_statement",
+    "while_statement",
+    "do_statement",
+    "try_statement",
+    "catch_clause",
+    "finally_clause",
+    "binary_expression",
+    "logical_expression",
+    "conditional_expression",
+    "switch_statement",
+    "switch_section",
+    "case_pattern_switch_label",
+    "default_switch_label",
+  ]),
 } as const;
 
 /**

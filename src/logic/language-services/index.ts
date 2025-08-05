@@ -4,6 +4,7 @@ import { initTypeScriptLanguageService } from "./typescript";
 import { initJavaLanguageService } from "./java";
 import { initCppLanguageService } from "./cpp";
 import { initCLanguageService } from "./c";
+import { initCSharpLanguageService } from "./csharp";
 
 /**
  * Initializes all language services for the extension.
@@ -48,4 +49,12 @@ export async function initLanguageServices(context: vscode.ExtensionContext) {
     "tree-sitter-c.wasm"
   ).fsPath;
   initCLanguageService(cWasmPath);
+
+  // Initialize C# language service
+  const csharpWasmPath = vscode.Uri.joinPath(
+    context.extensionUri,
+    "dist",
+    "tree-sitter-c-sharp.wasm"
+  ).fsPath;
+  initCSharpLanguageService(csharpWasmPath);
 }
