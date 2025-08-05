@@ -589,13 +589,24 @@ export class CSharpAstParser extends AbstractParser {
   }
 
   private getSwitchSectionLabel(section: Parser.SyntaxNode): string {
-    const caseLabel = section.children.find(child => child.type === "case_pattern_switch_label");
-    if (caseLabel) {
-      return `case ${this.escapeString(caseLabel.text)}`;
+    // Check for case keyword with pattern
+    const caseKeyword = section.children.find(child => child.type === "case");
+    if (caseKeyword) {
+      // Look for the pattern after the case keyword
+      const pattern = section.children.find(child => 
+        child.type === "relational_pattern" || 
+        child.type === "constant_pattern" ||
+        child.type === "literal"
+      );
+      if (pattern) {
+        return `case ${this.escapeString(pattern.text)}`;
+      }
+      return "case";
     }
 
-    const defaultLabel = section.children.find(child => child.type === "default_switch_label");
-    if (defaultLabel) {
+    // Check for default keyword
+    const defaultKeyword = section.children.find(child => child.type === "default");
+    if (defaultKeyword) {
       return "default";
     }
 
