@@ -102,6 +102,8 @@ const config = {
             "language-services",
             "rust",
             "tree-sitter-rust.wasm"
+            "csharp",
+            "tree-sitter-c-sharp.wasm"
           ),
           to: ".",
         },

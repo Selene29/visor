@@ -42,7 +42,7 @@ export class ComplexityAnalyzer {
    */
   public static calculateFunctionComplexity(
     functionNode: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): FunctionComplexityInfo {
     const functionName = this.extractFunctionName(functionNode, language);
     const complexity = this.calculateNodeComplexity(functionNode, language);
@@ -63,7 +63,7 @@ export class ComplexityAnalyzer {
    */
   public static calculateNodeComplexity(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): ComplexityResult {
     const decisionPoints = this.countDecisionPoints(node, language);
     const cyclomaticComplexity = decisionPoints + 1;
@@ -78,7 +78,7 @@ export class ComplexityAnalyzer {
 
   private static countDecisionPoints(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): number {
     let count = 0;
     const decisionNodeTypes = this.getDecisionNodeTypes(language);
@@ -107,14 +107,14 @@ export class ComplexityAnalyzer {
   }
 
   private static getDecisionNodeTypes(
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): Set<string> {
     return COMPLEXITY_NODE_TYPES[language] || new Set();
   }
 
   private static getDecisionPointsForNodeType(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): number {
     const nodeType = node.type;
 
@@ -170,7 +170,7 @@ export class ComplexityAnalyzer {
 
   private static countCaseClauses(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): number {
     const caseTypes =
       language === "python"
@@ -179,6 +179,8 @@ export class ComplexityAnalyzer {
         ? ["switch_label"]
         : language === "rust"
         ? ["match_arm"]
+        : language === "csharp"
+        ? ["switch_section"]
         : ["switch_case", "case_statement"];
 
     let count = 0;
@@ -194,7 +196,7 @@ export class ComplexityAnalyzer {
 
   private static countElifClauses(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): number {
     if (language !== "python") return 1;
 
@@ -211,12 +213,14 @@ export class ComplexityAnalyzer {
 
   private static extractFunctionName(
     functionNode: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): string {
     const nameField =
       language === "python"
         ? "name"
         : language === "java"
+        ? "name"
+        : language === "csharp"
         ? "name"
         : language === "cpp" || language === "c"
         ? "declarator"
@@ -299,7 +303,7 @@ export class ComplexityAnalyzer {
 
   private static analyzeStatementBlocks(
     functionNode: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust",
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp",
     nodeComplexities: Map<string, ComplexityResult>
   ): void {
     // Find significant statement blocks (if blocks, loop bodies, etc.)
@@ -317,7 +321,7 @@ export class ComplexityAnalyzer {
 
   private static findSignificantBlocks(
     node: Parser.SyntaxNode,
-    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust"
+    language: "python" | "typescript" | "java" | "cpp" | "c" | "rust" | "csharp"
   ): Parser.SyntaxNode[] {
     const blocks: Parser.SyntaxNode[] = [];
     const blockTypes = new Set([

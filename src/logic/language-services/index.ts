@@ -5,6 +5,7 @@ import { initJavaLanguageService } from "./java";
 import { initCppLanguageService } from "./cpp";
 import { initCLanguageService } from "./c";
 import { initRustLanguageService } from "./rust";
+import { initCSharpLanguageService } from "./csharp";
 
 /**
  * Initializes all language services for the extension.

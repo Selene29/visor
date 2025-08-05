@@ -18,6 +18,7 @@
 - **C++**: Functions and methods
 - **C**: Functions with comprehensive control flow support (if/else, loops, switch, goto)
 - **Rust**: Functions, closures, match expressions, if/else, loops (for, while, loop), break/continue
+- **C#**: Methods, constructors, properties, local functions with full control flow support
 
 ### 🎯 **Interactive Visualization**
 
@@ -60,12 +61,12 @@
 - **Configurable Thresholds**: Customizable complexity ratings (Low/Medium/High/Very High)
 - **Toggle Display**: 📊 button to show/hide complexity information
 - **Smart Analysis**: Follows McCabe's cyclomatic complexity calculation
-- **Multi-Language Support**: Works across Python, TypeScript, Java, C++, C, and Rust
+- **Multi-Language Support**: Works across Python, TypeScript, Java, C++, C, C#, and Rust
 
 ## 🚀 Quick Start
 
 1. **Install** the Visor extension from the VS Code marketplace
-2. **Open** any Python, TypeScript, Java, C, or C++ file
+2. **Open** any Python, TypeScript, Java, C, C++, or C# file
 3. **Click** the Visor icon in the Activity Bar (left sidebar)
 4. **Place your cursor** inside a function to see the flowchart
 5. **Observe complexity metrics** in the bottom panel and node indicators
@@ -232,6 +233,18 @@ Visor supports opening flowcharts in dedicated external windows for enhanced pro
 - Break and continue statements
 - Pointer operations and function pointers
 
+#### C#
+
+- Method definitions (`public int MethodName() {}`)
+- Constructor methods
+- Property declarations with get/set accessors
+- Local function statements
+- Control flow structures (if/else, for, foreach, while, do-while)
+- Switch statements and switch expressions
+- Try/catch/finally exception handling
+- Break and continue statements
+- Using statements and disposable patterns
+
 ## 🛠 Technical Architecture
 
 ### Core Components
@@ -258,7 +271,7 @@ Visor supports opening flowcharts in dedicated external windows for enhanced pro
 
 - **Visual Studio Code**: v1.102.0 or newer
 - **Node.js**: Required for development (not for end users)
-- **Supported Languages**: Python, TypeScript, JavaScript, Java, C, C++
+- **Supported Languages**: Python, TypeScript, JavaScript, Java, C, C++, C#
 
 ## 🔧 Development
 
