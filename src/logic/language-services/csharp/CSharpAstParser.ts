@@ -33,31 +33,57 @@ export class CSharpAstParser extends AbstractParser {
     return this.measurePerformance("listFunctions", () => {
       const tree = this.parser.parse(sourceCode);
 
-      // Get method declarations
-      const methodNames = tree.rootNode
+      const functions: string[] = [];
+
+      // Get method declarations (including async methods)
+      tree.rootNode
         .descendantsOfType("method_declaration")
-        .map(
-          (m: Parser.SyntaxNode) =>
-            m.childForFieldName("name")?.text || "[anonymous method]"
-        );
+        .forEach((m: Parser.SyntaxNode) => {
+          const name = m.childForFieldName("name")?.text || "[anonymous method]";
+          const isAsync = this.isAsyncMethod(m);
+          functions.push(isAsync ? `async ${name}` : name);
+        });
 
       // Get constructor declarations
-      const constructorNames = tree.rootNode
+      tree.rootNode
         .descendantsOfType("constructor_declaration")
-        .map(
-          (c: Parser.SyntaxNode) =>
-            c.childForFieldName("name")?.text || "[constructor]"
-        );
+        .forEach((c: Parser.SyntaxNode) => {
+          const name = c.childForFieldName("name")?.text || "[constructor]";
+          functions.push(name);
+        });
 
-      // Get property accessors (get/set methods)
-      const accessorNames = tree.rootNode
-        .descendantsOfType("accessor_declaration")
-        .map(
-          (a: Parser.SyntaxNode) =>
-            a.childForFieldName("name")?.text || "[accessor]"
-        );
+      // Get property declarations with accessors
+      tree.rootNode
+        .descendantsOfType("property_declaration")
+        .forEach((p: Parser.SyntaxNode) => {
+          const name = p.childForFieldName("name")?.text || "[property]";
+          const hasGet = p.descendantsOfType("get_accessor_declaration").length > 0;
+          const hasSet = p.descendantsOfType("set_accessor_declaration").length > 0;
+          
+          if (hasGet || hasSet) {
+            const accessors = [];
+            if (hasGet) {
+              accessors.push("get");
+            }
+            if (hasSet) {
+              accessors.push("set");
+            }
+            functions.push(`${name} { ${accessors.join(", ")} }`);
+          } else {
+            functions.push(name);
+          }
+        });
 
-      return [...methodNames, ...constructorNames, ...accessorNames];
+      // Get local function statements
+      tree.rootNode
+        .descendantsOfType("local_function_statement")
+        .forEach((lf: Parser.SyntaxNode) => {
+          const name = lf.childForFieldName("name")?.text || "[local function]";
+          const isAsync = this.isAsyncMethod(lf);
+          functions.push(isAsync ? `local async ${name}` : `local ${name}`);
+        });
+
+      return functions;
     });
   }
 
@@ -71,31 +97,65 @@ export class CSharpAstParser extends AbstractParser {
     let method = tree.rootNode
       .descendantsOfType("method_declaration")
       .find((m) => position >= m.startIndex && position <= m.endIndex);
-    if (method)
-      return method.childForFieldName("name")?.text || "[anonymous method]";
+    if (method) {
+      const name = method.childForFieldName("name")?.text || "[anonymous method]";
+      const isAsync = this.isAsyncMethod(method);
+      return isAsync ? `async ${name}` : name;
+    }
 
     // Check constructor declarations
     method = tree.rootNode
       .descendantsOfType("constructor_declaration")
       .find((c) => position >= c.startIndex && position <= c.endIndex);
-    if (method)
+    if (method) {
       return method.childForFieldName("name")?.text || "[constructor]";
+    }
 
     // Check property declarations
     const property = tree.rootNode
       .descendantsOfType("property_declaration")
       .find((p) => position >= p.startIndex && position <= p.endIndex);
-    if (property)
-      return property.childForFieldName("name")?.text || "[property]";
+    if (property) {
+      const name = property.childForFieldName("name")?.text || "[property]";
+      const hasGet = property.descendantsOfType("get_accessor_declaration").length > 0;
+      const hasSet = property.descendantsOfType("set_accessor_declaration").length > 0;
+      
+      if (hasGet || hasSet) {
+        const accessors = [];
+        if (hasGet) {
+          accessors.push("get");
+        }
+        if (hasSet) {
+          accessors.push("set");
+        }
+        return `${name} { ${accessors.join(", ")} }`;
+      } else {
+        return name;
+      }
+    }
 
     // Check local function statements
     const localFunction = tree.rootNode
       .descendantsOfType("local_function_statement")
       .find((f) => position >= f.startIndex && position <= f.endIndex);
-    if (localFunction)
-      return localFunction.childForFieldName("name")?.text || "[local function]";
+    if (localFunction) {
+      const name = localFunction.childForFieldName("name")?.text || "[local function]";
+      const isAsync = this.isAsyncMethod(localFunction);
+      return isAsync ? `local async ${name}` : `local ${name}`;
+    }
 
     return undefined;
+  }
+
+  private isAsyncMethod(methodNode: Parser.SyntaxNode): boolean {
+    // Look for async modifier in the modifiers
+    const modifiers = methodNode.childForFieldName("modifiers");
+    if (modifiers) {
+      return modifiers.children.some(modifier => modifier.text === "async");
+    }
+    
+    // Also check direct children for async keyword (in case tree structure varies)
+    return methodNode.children.some(child => child.text === "async");
   }
 
   public generateFlowchart(
@@ -306,6 +366,9 @@ export class CSharpAstParser extends AbstractParser {
       case "switch_statement":
         return this.processSwitchStatement(statement, exitId, loopContext);
 
+      case "switch_expression":
+        return this.processSwitchExpression(statement, exitId, loopContext);
+
       case "try_statement":
         return this.processTryStatement(statement, exitId, loopContext, finallyContext);
 
@@ -320,6 +383,34 @@ export class CSharpAstParser extends AbstractParser {
 
       case "throw_statement":
         return this.processThrowStatement(statement, exitId);
+
+      case "using_statement":
+        return this.processUsingStatement(statement, exitId, loopContext, finallyContext);
+
+      case "lock_statement":
+        return this.processLockStatement(statement, exitId, loopContext, finallyContext);
+
+      case "yield_statement":
+        return this.processYieldStatement(statement, exitId);
+
+      case "goto_statement":
+        return this.processGotoStatement(statement, exitId);
+
+      case "labeled_statement":
+        return this.processLabeledStatement(statement, exitId, loopContext, finallyContext);
+
+      case "checked_statement":
+      case "unchecked_statement":
+        return this.processCheckedStatement(statement, exitId, loopContext, finallyContext);
+
+      case "unsafe_statement":
+        return this.processUnsafeStatement(statement, exitId, loopContext, finallyContext);
+
+      case "fixed_statement":
+        return this.processFixedStatement(statement, exitId, loopContext, finallyContext);
+
+      case "local_function_statement":
+        return this.processLocalFunctionStatement(statement, exitId);
 
       case "block":
         return this.processBlock(statement, exitId, loopContext, finallyContext);
@@ -589,28 +680,80 @@ export class CSharpAstParser extends AbstractParser {
   }
 
   private getSwitchSectionLabel(section: Parser.SyntaxNode): string {
-    // Check for case keyword with pattern
-    const caseKeyword = section.children.find(child => child.type === "case");
-    if (caseKeyword) {
-      // Look for the pattern after the case keyword
-      const pattern = section.children.find(child => 
-        child.type === "relational_pattern" || 
-        child.type === "constant_pattern" ||
-        child.type === "literal"
-      );
-      if (pattern) {
-        return `case ${this.escapeString(pattern.text)}`;
-      }
+    // Look for switch labels (case or default)
+    const labels = section.children.filter(child => 
+      child.type === "case_pattern_switch_label" || 
+      child.type === "default_switch_label"
+    );
+
+    if (labels.length === 0) {
       return "case";
     }
 
-    // Check for default keyword
-    const defaultKeyword = section.children.find(child => child.type === "default");
-    if (defaultKeyword) {
-      return "default";
+    // Process all labels (there can be multiple case labels for one section)
+    const labelTexts: string[] = [];
+    
+    for (const label of labels) {
+      if (label.type === "default_switch_label") {
+        labelTexts.push("default");
+        continue;
+      }
+
+      // For case_pattern_switch_label, extract the pattern
+      const caseKeyword = label.children.find(child => child.type === "case");
+      if (!caseKeyword) {
+        labelTexts.push("case");
+        continue;
+      }
+
+      // Find the pattern after case keyword
+      const patternTypes = [
+        "relational_pattern",      // case >= 90:
+        "constant_pattern",        // case 70:
+        "literal_expression",      // case "A":
+        "variable_pattern",        // case var x:
+        "null_literal",           // case null:
+        "list_pattern",           // case [1, 2]:
+        "property_pattern",       // case { X: 1 }:
+        "parenthesized_pattern",  // case (>= 90):
+        "type_pattern",           // case int x:
+        "identifier",             // case SomeConstant:
+        "member_access_expression", // case MyEnum.Value:
+        "integer_literal",        // case 42:
+        "string_literal",         // case "text":
+        "boolean_literal"         // case true:
+      ];
+
+      let patternFound = false;
+      for (const patternType of patternTypes) {
+        const pattern = label.descendantsOfType(patternType)[0];
+        if (pattern) {
+          labelTexts.push(`case ${this.escapeString(pattern.text)}`);
+          patternFound = true;
+          break;
+        }
+      }
+
+      if (!patternFound) {
+        // Fallback: try to extract everything between case and colon
+        const caseIndex = label.children.findIndex(child => child.type === "case");
+        const colonIndex = label.children.findIndex(child => child.text === ":");
+        
+        if (caseIndex >= 0 && colonIndex > caseIndex) {
+          const patternNodes = label.children.slice(caseIndex + 1, colonIndex);
+          const patternText = patternNodes.map(node => node.text).join("").trim();
+          if (patternText) {
+            labelTexts.push(`case ${this.escapeString(patternText)}`);
+          } else {
+            labelTexts.push("case");
+          }
+        } else {
+          labelTexts.push("case");
+        }
+      }
     }
 
-    return "case";
+    return labelTexts.join(", ");
   }
 
   private processTryStatement(
@@ -825,5 +968,448 @@ export class CSharpAstParser extends AbstractParser {
       [],
       nodesConnectedToExit
     );
+  }
+
+  private processSwitchExpression(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext
+  ): ProcessResult {
+    const switchExpression = node.childForFieldName("expression") || node.childForFieldName("value");
+    const switchText = switchExpression
+      ? `switch ${this.escapeString(switchExpression.text)}`
+      : "switch expression";
+
+    const switchId = this.generateNodeId("switch_expr");
+    const switchNode = this.createSemanticNode(
+      switchId,
+      switchText,
+      NodeType.DECISION,
+      node
+    );
+
+    return this.createProcessResult([switchNode], [], switchId, [{ id: switchId }]);
+  }
+
+  private processUsingStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const declaration = node.childForFieldName("declaration");
+    const expression = node.childForFieldName("expression");
+    
+    let usingText = "using";
+    if (declaration) {
+      usingText = `using (${this.escapeString(declaration.text)})`;
+    } else if (expression) {
+      usingText = `using (${this.escapeString(expression.text)})`;
+    }
+
+    const usingId = this.generateNodeId("using");
+    const usingNode = this.createSemanticNode(usingId, usingText, NodeType.PROCESS, node);
+
+    const nodes = [usingNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the using body
+    const body = node.childForFieldName("body");
+    if (body) {
+      const bodyResult = this.processStatement(body, exitId, loopContext, finallyContext);
+      nodes.push(...bodyResult.nodes);
+      edges.push(...bodyResult.edges);
+
+      if (bodyResult.entryNodeId) {
+        edges.push({ from: usingId, to: bodyResult.entryNodeId });
+      }
+
+      exitPoints = bodyResult.exitPoints;
+      bodyResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: usingId }];
+    }
+
+    return this.createProcessResult(nodes, edges, usingId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processLockStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const expression = node.childForFieldName("expression");
+    const lockText = expression
+      ? `lock (${this.escapeString(expression.text)})`
+      : "lock";
+
+    const lockId = this.generateNodeId("lock");
+    const lockNode = this.createSemanticNode(lockId, lockText, NodeType.PROCESS, node);
+
+    const nodes = [lockNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the lock body
+    const body = node.childForFieldName("body");
+    if (body) {
+      const bodyResult = this.processStatement(body, exitId, loopContext, finallyContext);
+      nodes.push(...bodyResult.nodes);
+      edges.push(...bodyResult.edges);
+
+      if (bodyResult.entryNodeId) {
+        edges.push({ from: lockId, to: bodyResult.entryNodeId });
+      }
+
+      exitPoints = bodyResult.exitPoints;
+      bodyResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: lockId }];
+    }
+
+    return this.createProcessResult(nodes, edges, lockId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processYieldStatement(node: Parser.SyntaxNode, exitId: string): ProcessResult {
+    const expression = node.childForFieldName("expression");
+    const yieldKeyword = node.children.find(child => child.text === "yield");
+    const yieldType = node.children.find(child => child.text === "return" || child.text === "break");
+    
+    let yieldText = "yield";
+    if (yieldType) {
+      yieldText = `yield ${yieldType.text}`;
+      if (expression && yieldType.text === "return") {
+        yieldText = `yield return ${this.escapeString(expression.text)}`;
+      }
+    }
+
+    const yieldId = this.generateNodeId("yield");
+    const yieldNode = this.createSemanticNode(yieldId, yieldText, NodeType.PROCESS, node);
+
+    return this.createProcessResult([yieldNode], [], yieldId, [{ id: yieldId }]);
+  }
+
+  private processGotoStatement(node: Parser.SyntaxNode, exitId: string): ProcessResult {
+    const label = node.childForFieldName("label");
+    const gotoText = label
+      ? `goto ${this.escapeString(label.text)}`
+      : "goto";
+
+    const gotoId = this.generateNodeId("goto");
+    const gotoNode = this.createSemanticNode(gotoId, gotoText, NodeType.PROCESS, node);
+
+    const nodesConnectedToExit = new Set<string>();
+    nodesConnectedToExit.add(gotoId);
+
+    return this.createProcessResult(
+      [gotoNode],
+      [{ from: gotoId, to: exitId }],
+      gotoId,
+      [],
+      nodesConnectedToExit
+    );
+  }
+
+  private processLabeledStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const label = node.childForFieldName("label");
+    const labelText = label ? `${this.escapeString(label.text)}:` : "label:";
+
+    const labelId = this.generateNodeId("label");
+    const labelNode = this.createSemanticNode(labelId, labelText, NodeType.PROCESS, node);
+
+    const nodes = [labelNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the statement after the label
+    const statement = node.childForFieldName("statement");
+    if (statement) {
+      const stmtResult = this.processStatement(statement, exitId, loopContext, finallyContext);
+      nodes.push(...stmtResult.nodes);
+      edges.push(...stmtResult.edges);
+
+      if (stmtResult.entryNodeId) {
+        edges.push({ from: labelId, to: stmtResult.entryNodeId });
+      }
+
+      exitPoints = stmtResult.exitPoints;
+      stmtResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: labelId }];
+    }
+
+    return this.createProcessResult(nodes, edges, labelId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processCheckedStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const checkedText = node.type === "checked_statement" ? "checked" : "unchecked";
+    const checkedId = this.generateNodeId(checkedText);
+    const checkedNode = this.createSemanticNode(checkedId, checkedText, NodeType.PROCESS, node);
+
+    const nodes = [checkedNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the body
+    const body = node.childForFieldName("body");
+    if (body) {
+      const bodyResult = this.processStatement(body, exitId, loopContext, finallyContext);
+      nodes.push(...bodyResult.nodes);
+      edges.push(...bodyResult.edges);
+
+      if (bodyResult.entryNodeId) {
+        edges.push({ from: checkedId, to: bodyResult.entryNodeId });
+      }
+
+      exitPoints = bodyResult.exitPoints;
+      bodyResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: checkedId }];
+    }
+
+    return this.createProcessResult(nodes, edges, checkedId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processUnsafeStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const unsafeId = this.generateNodeId("unsafe");
+    const unsafeNode = this.createSemanticNode(unsafeId, "unsafe", NodeType.PROCESS, node);
+
+    const nodes = [unsafeNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the body
+    const body = node.childForFieldName("body");
+    if (body) {
+      const bodyResult = this.processStatement(body, exitId, loopContext, finallyContext);
+      nodes.push(...bodyResult.nodes);
+      edges.push(...bodyResult.edges);
+
+      if (bodyResult.entryNodeId) {
+        edges.push({ from: unsafeId, to: bodyResult.entryNodeId });
+      }
+
+      exitPoints = bodyResult.exitPoints;
+      bodyResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: unsafeId }];
+    }
+
+    return this.createProcessResult(nodes, edges, unsafeId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processFixedStatement(
+    node: Parser.SyntaxNode,
+    exitId: string,
+    loopContext?: LoopContext,
+    finallyContext?: { finallyEntryId: string }
+  ): ProcessResult {
+    const declaration = node.childForFieldName("declaration");
+    const fixedText = declaration
+      ? `fixed (${this.escapeString(declaration.text)})`
+      : "fixed";
+
+    const fixedId = this.generateNodeId("fixed");
+    const fixedNode = this.createSemanticNode(fixedId, fixedText, NodeType.PROCESS, node);
+
+    const nodes = [fixedNode];
+    const edges: FlowchartEdge[] = [];
+    let exitPoints: { id: string; label?: string }[] = [];
+    const nodesConnectedToExit = new Set<string>();
+
+    // Process the body
+    const body = node.childForFieldName("body");
+    if (body) {
+      const bodyResult = this.processStatement(body, exitId, loopContext, finallyContext);
+      nodes.push(...bodyResult.nodes);
+      edges.push(...bodyResult.edges);
+
+      if (bodyResult.entryNodeId) {
+        edges.push({ from: fixedId, to: bodyResult.entryNodeId });
+      }
+
+      exitPoints = bodyResult.exitPoints;
+      bodyResult.nodesConnectedToExit.forEach(id => nodesConnectedToExit.add(id));
+    } else {
+      exitPoints = [{ id: fixedId }];
+    }
+
+    return this.createProcessResult(nodes, edges, fixedId, exitPoints, nodesConnectedToExit);
+  }
+
+  private processLocalFunctionStatement(node: Parser.SyntaxNode, exitId: string): ProcessResult {
+    const name = node.childForFieldName("name");
+    const functionText = name
+      ? `local function ${this.escapeString(name.text)}`
+      : "local function";
+
+    const functionId = this.generateNodeId("local_func");
+    const functionNode = this.createSemanticNode(functionId, functionText, NodeType.PROCESS, node);
+
+    return this.createProcessResult([functionNode], [], functionId, [{ id: functionId }]);
+  }
+
+  protected processDefaultStatement(statement: Parser.SyntaxNode): ProcessResult {
+    const nodeId = this.generateNodeId("stmt");
+
+    // C#-specific statement processing
+    let label = this.escapeString(statement.text);
+    let nodeType = NodeType.PROCESS;
+
+    // Handle C#-specific statement types
+    switch (statement.type) {
+      case "expression_statement":
+        // Extract the actual expression from expression_statement
+        const expr = statement.children[0];
+        if (expr) {
+          label = this.escapeString(expr.text);
+          nodeType = this.inferCSharpNodeTypeFromExpression(expr);
+        }
+        break;
+
+      case "local_declaration_statement":
+      case "variable_declaration":
+        nodeType = NodeType.ASSIGNMENT;
+        // Try to extract a cleaner variable declaration text
+        const declarator = statement.descendantsOfType("variable_declarator")[0];
+        if (declarator) {
+          const varName = declarator.childForFieldName("name");
+          const initializer = declarator.childForFieldName("initializer");
+          if (varName && initializer) {
+            label = `${varName.text} = ${this.escapeString(initializer.text)}`;
+          } else if (varName) {
+            label = `declare ${varName.text}`;
+          }
+        }
+        break;
+
+      case "assignment_expression":
+        nodeType = NodeType.ASSIGNMENT;
+        break;
+
+      case "invocation_expression":
+      case "await_expression":
+        nodeType = NodeType.FUNCTION_CALL;
+        if (statement.type === "await_expression") {
+          nodeType = NodeType.ASYNC_OPERATION;
+          const expr = statement.childForFieldName("expression");
+          if (expr) {
+            label = `await ${this.escapeString(expr.text)}`;
+          } else {
+            label = "await";
+          }
+        }
+        break;
+
+      case "interpolated_string_expression":
+        // Handle string interpolation
+        label = this.processInterpolatedString(statement);
+        nodeType = NodeType.PROCESS;
+        break;
+
+      default:
+        nodeType = this.inferCSharpNodeType(statement);
+        break;
+    }
+
+    const node = this.createSemanticNode(nodeId, label, nodeType, statement);
+
+    this.locationMap.push({
+      start: statement.startIndex,
+      end: statement.endIndex,
+      nodeId,
+    });
+
+    return this.createProcessResult([node], [], nodeId, [{ id: nodeId }]);
+  }
+
+  private inferCSharpNodeTypeFromExpression(expr: Parser.SyntaxNode): NodeType {
+    switch (expr.type) {
+      case "assignment_expression":
+        return NodeType.ASSIGNMENT;
+      case "invocation_expression":
+        return NodeType.FUNCTION_CALL;
+      case "await_expression":
+        return NodeType.ASYNC_OPERATION;
+      case "conditional_expression": // ternary operator
+        return NodeType.DECISION;
+      default:
+        return NodeType.PROCESS;
+    }
+  }
+
+  private inferCSharpNodeType(syntaxNode: Parser.SyntaxNode): NodeType {
+    const nodeType = syntaxNode.type.toLowerCase();
+
+    // C#-specific node type inference
+    if (nodeType.includes("assignment") || nodeType.includes("declaration")) {
+      return NodeType.ASSIGNMENT;
+    }
+
+    if (nodeType.includes("invocation") || nodeType.includes("call")) {
+      return NodeType.FUNCTION_CALL;
+    }
+
+    if (nodeType.includes("await") || nodeType.includes("async")) {
+      return NodeType.ASYNC_OPERATION;
+    }
+
+    if (nodeType.includes("condition") || nodeType.includes("ternary")) {
+      return NodeType.DECISION;
+    }
+
+    if (nodeType.includes("interpolat")) {
+      return NodeType.PROCESS;
+    }
+
+    // Fall back to base class inference
+    return this.inferNodeTypeFromSyntax(syntaxNode);
+  }
+
+  private processInterpolatedString(node: Parser.SyntaxNode): string {
+    // Handle C# string interpolation like $"Error: {ex.Message}"
+    const parts: string[] = [];
+    
+    for (const child of node.children) {
+      if (child.type === "interpolated_string_text") {
+        parts.push(child.text);
+      } else if (child.type === "interpolation") {
+        const expression = child.childForFieldName("expression");
+        if (expression) {
+          parts.push(`{${expression.text}}`);
+        } else {
+          parts.push("{...}");
+        }
+      } else if (child.type === '"' || child.type === '$') {
+        // Skip string delimiters
+        continue;
+      } else {
+        parts.push(child.text);
+      }
+    }
+    
+    return `$"${parts.join('')}"`;
   }
 }
