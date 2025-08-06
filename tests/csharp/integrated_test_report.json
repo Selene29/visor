@@ -1,24 +1,29 @@
 {
-  "timestamp": "2025-08-05T21:56:16.186Z",
+  "timestamp": "2025-08-06T19:06:49.528Z",
   "mode": "simulation",
   "summary": {
-    "total": 13,
-    "passed": 12,
-    "issues": 1,
-    "successRate": 0.9230769230769231
+    "total": 20,
+    "passed": 18,
+    "issues": 2,
+    "successRate": 0.9
   },
   "functions": [
     "FetchDataAsync",
     "Max",
     "Add",
+    "DeactivateIfOld",
+    "IsValidEmail",
+    "FindMax",
+    "FilterAndSort",
+    "ProcessNumbers",
+    "ProcessStrings",
     "Categorize",
     "IsPositive",
     "SafeDivide",
     "ComplexCalculation",
-    "ProcessNumbers",
+    "GetGrade",
     "SumPositive",
     "Factorial",
-    "GetGrade",
     "GetLetterGrade"
   ],
   "results": [
@@ -60,6 +65,60 @@
       "flowchartEdges": 3,
       "parseTime": 0,
       "treeStructure": "class_declaration\n    method_declaration\n        return_statement"
+    },
+    {
+      "fileName": "common/constructor_logic.cs",
+      "source": "// Test: Constructor and property initialization\npublic class Customer\n{\n    public string Name { get; set; }\n    public int Age { get; set; }\n    public bool IsActive { get; set; }\n    \n    public Customer(string name, int age)\n    {\n        if (string.IsNullOrEmpty(name))\n        {\n            throw new ArgumentException(\"Name cannot be empty\");\n        }\n        \n        if (age < 0)\n        {\n            throw new ArgumentException(\"Age cannot be negative\");\n        }\n        \n        Name = name;\n        Age = age;\n        IsActive = true;\n    }\n    \n    public void DeactivateIfOld()\n    {\n        if (Age > 65)\n        {\n            IsActive = false;\n        }\n    }\n}",
+      "success": true,
+      "functions": [
+        "DeactivateIfOld"
+      ],
+      "issues": [],
+      "flowchartNodes": 5,
+      "flowchartEdges": 4,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n      if_statement\n      if_statement\n    method_declaration\n        if_statement"
+    },
+    {
+      "fileName": "common/email_validation.cs",
+      "source": "// Test: Email validation with complex logic\npublic class Validator\n{\n    public bool IsValidEmail(string email)\n    {\n        if (string.IsNullOrEmpty(email))\n        {\n            return false;\n        }\n\n        if (!email.Contains(\"@\"))\n        {\n            return false;\n        }\n\n        string[] parts = email.Split('@');\n        if (parts.Length != 2)\n        {\n            return false;\n        }\n\n        return !string.IsNullOrEmpty(parts[0]) && !string.IsNullOrEmpty(parts[1]);\n    }\n}",
+      "success": true,
+      "functions": [
+        "IsValidEmail"
+      ],
+      "issues": [],
+      "flowchartNodes": 9,
+      "flowchartEdges": 8,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n    method_declaration\n        if_statement\n          return_statement\n        if_statement\n          return_statement\n        if_statement\n          return_statement\n        return_statement"
+    },
+    {
+      "fileName": "common/generic_methods.cs",
+      "source": "// Test: Generic methods and type constraints\npublic class GenericProcessor<T> where T : IComparable<T>\n{\n    public T FindMax(List<T> items)\n    {\n        if (items == null || items.Count == 0)\n        {\n            throw new ArgumentException(\"List cannot be null or empty\");\n        }\n        \n        T max = items[0];\n        \n        for (int i = 1; i < items.Count; i++)\n        {\n            if (items[i].CompareTo(max) > 0)\n            {\n                max = items[i];\n            }\n        }\n        \n        return max;\n    }\n    \n    public List<T> FilterAndSort(List<T> items, Func<T, bool> predicate)\n    {\n        var filtered = new List<T>();\n        \n        foreach (var item in items)\n        {\n            if (predicate(item))\n            {\n                filtered.Add(item);\n            }\n        }\n        \n        filtered.Sort();\n        return filtered;\n    }\n}",
+      "success": true,
+      "functions": [
+        "FindMax",
+        "FilterAndSort"
+      ],
+      "issues": [],
+      "flowchartNodes": 7,
+      "flowchartEdges": 6,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n    method_declaration\n        if_statement\n          if_statement\n        return_statement\n          if_statement\n        return_statement"
+    },
+    {
+      "fileName": "common/linq_operations.cs",
+      "source": "// Test: LINQ and method chaining\nusing System.Linq;\n\npublic class DataProcessor\n{\n    public List<int> ProcessNumbers(List<int> numbers)\n    {\n        return numbers\n            .Where(n => n > 0)\n            .Where(n => n < 100)\n            .Select(n => n * 2)\n            .OrderBy(n => n)\n            .ToList();\n    }\n\n    public string ProcessStrings(List<string> strings)\n    {\n        var result = strings\n            .Where(s => !string.IsNullOrEmpty(s))\n            .Select(s => s.Trim().ToUpper())\n            .FirstOrDefault();\n            \n        return result ?? \"No valid string found\";\n    }\n}",
+      "success": true,
+      "functions": [
+        "ProcessNumbers",
+        "ProcessStrings"
+      ],
+      "issues": [],
+      "flowchartNodes": 4,
+      "flowchartEdges": 3,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n      return_statement\n    method_declaration\n        return_statement"
     },
     {
       "fileName": "conditionals/nested_if.cs",
@@ -112,6 +171,47 @@
       "flowchartEdges": 10,
       "parseTime": 0,
       "treeStructure": "class_declaration\n    method_declaration\n        try_statement\n        catch_clause\n        catch_clause\n        finally_clause\n        return_statement"
+    },
+    {
+      "fileName": "issues/finally_block_content.cs",
+      "source": "// Test: Finally block with actual content issue from comments\npublic class ExceptionHandler\n{\n    public int ComplexCalculation(int[] numbers)\n    {\n        int result = 0;\n        \n        foreach (int number in numbers)\n        {\n            if (number > 0)\n            {\n                result += number % 2 == 0 ? number * 2 : number;\n            }\n            else if (number < 0)\n            {\n                result -= Math.Abs(number);\n            }\n        }\n\n        try\n        {\n            result = result / numbers.Length;\n        }\n        catch (DivideByZeroException ex)\n        {\n            Console.WriteLine($\"Error: {ex.Message}\");\n            result = 0;\n        }\n        finally\n        {\n            Console.WriteLine(\"Calculation completed\");\n        }\n\n        return result;\n    }\n}",
+      "success": false,
+      "functions": [
+        "ComplexCalculation"
+      ],
+      "issues": [
+        "Finally block should show actual content, not just \"finally\""
+      ],
+      "flowchartNodes": 9,
+      "flowchartEdges": 8,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n    method_declaration\n          if_statement\n          if_statement\n        try_statement\n        catch_clause\n        finally_clause\n        return_statement"
+    },
+    {
+      "fileName": "issues/getgrade_relational_patterns.cs",
+      "source": "// Test: Specific GetGrade issue from comments\npublic class GradeCalculator\n{\n    public string GetGrade(int score)\n    {\n        switch (score)\n        {\n            case >= 90:\n                return \"A\";\n            case >= 80:\n                return \"B\";\n            case >= 70:\n                return \"C\";\n            case >= 60:\n                return \"D\";\n            default:\n                return \"F\";\n        }\n    }\n}",
+      "success": true,
+      "functions": [
+        "GetGrade"
+      ],
+      "issues": [],
+      "flowchartNodes": 11,
+      "flowchartEdges": 10,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n    method_declaration\n        switch_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n          return_statement"
+    },
+    {
+      "fileName": "issues/simple_add_method.cs",
+      "source": "// Test: Simple Add method that should show Start -> return -> End\npublic class Calculator\n{\n    public int Add(int a, int b)\n    {\n        return a + b;\n    }\n}",
+      "success": true,
+      "functions": [
+        "Add"
+      ],
+      "issues": [],
+      "flowchartNodes": 4,
+      "flowchartEdges": 3,
+      "parseTime": 0,
+      "treeStructure": "class_declaration\n    method_declaration\n        return_statement"
     },
     {
       "fileName": "loops/for_loop_break_continue.cs",
@@ -175,7 +275,7 @@
       ],
       "flowchartNodes": 11,
       "flowchartEdges": 10,
-      "parseTime": 0,
+      "parseTime": 1,
       "treeStructure": "class_declaration\n    method_declaration\n        switch_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n            switch_section\n              relational_pattern\n          return_statement\n          return_statement"
     },
     {
