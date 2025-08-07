@@ -101,7 +101,7 @@ const config = {
             "logic",
             "language-services",
             "rust",
-            "tree-sitter-rust.wasm"
+            "tree-sitter-rust.wasm",
             "csharp",
             "tree-sitter-c-sharp.wasm"
           ),
